@@ -1,4 +1,6 @@
 [
-   "dataname": "string datavalue",
-   "intvalname": 12
+   "dataname",
+   "string datavalue",
+   "intvalname",
+   12
 ]

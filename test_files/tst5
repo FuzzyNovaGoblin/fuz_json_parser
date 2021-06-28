@@ -1,0 +1,14 @@
+{
+   "dataname": "string datavalue",
+   "intvalname": 12,
+   "thang":[3,3,3],
+   "sub-obj": {
+      "val1": 1,
+      "val3": 3,
+      "val2": 2,"sub-obj": {
+         "val1": 1,
+         "val3": 3,
+         "val2": 2
+      }
+   }
+}

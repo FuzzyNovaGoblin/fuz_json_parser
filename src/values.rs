@@ -14,6 +14,7 @@ pub enum JsonValue {
     String(String),
     Array(Vec<JsonValue>),
     Obj(HashMap<String, Box<JsonValue>>),
+    KeyPair(String, Box<JsonValue>),
 }
 
 impl Display for JsonNum {
@@ -45,16 +46,19 @@ impl Display for JsonValue {
             }
             JsonValue::Obj(json_val) => {
                 let mut dsply_str = String::new();
-                let last_index = json_val.len() - 1;
+                if json_val.len() > 0 {
+                    let last_index = json_val.len() - 1;
 
-                for (i, (name, val)) in json_val.iter().enumerate() {
-                    dsply_str.push_str(format!("\"{}\" : {}", name, *val).as_str());
-                    if i != last_index {
-                        dsply_str.push_str(", ");
+                    for (i, (name, val)) in json_val.iter().enumerate() {
+                        dsply_str.push_str(format!("\"{}\" : {}", name, *val).as_str());
+                        if i != last_index {
+                            dsply_str.push_str(", ");
+                        }
                     }
                 }
-                write!(f, "[{}]", dsply_str)
+                write!(f, "{{{}}}", dsply_str)
             }
+            JsonValue::KeyPair(str, j_val) => write!(f, "\"{}\":{}", str, *j_val),
         }
     }
 }

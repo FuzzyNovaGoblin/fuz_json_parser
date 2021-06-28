@@ -8,7 +8,7 @@ mod runner_mods {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let args = ClArgs::pars_args(env::args());
-    println!("{:?}", args);
+
     if args.filename == "" {
         return Ok(());
     }
@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let data = fs::read_to_string(args.filename.clone())
         .expect(format!("failed to read {}", args.filename).as_str());
 
-    let parsed_data = fuz_json_parser::parser::parse(data);
+    let parsed_data = fuz_json_parser::parser::parse(data.clone());
 
     match parsed_data {
         Ok(data) => println!("finnished parsing\n{}", data),
