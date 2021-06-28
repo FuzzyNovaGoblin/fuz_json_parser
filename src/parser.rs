@@ -103,14 +103,16 @@ fn parse_array<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,
 {
-    let mut depth = 0;
+    let mut ret_val: Vec<JsonValue> = Vec::new();
+    let mut depth = 1;
     let mut token_start = 0;
     for (i, c) in json_str.as_ref().chars().enumerate() {
         match c {
             ',' => {
-                if i == token_start || depth > 0 {
+                if i == token_start || depth > 1 {
                     continue;
                 }
+                ret_val.push(main_parse(&json_str.as_ref()[token_start..i])?);
                 token_start = i + 1;
             }
             '[' | '{' => depth += 1,
@@ -119,7 +121,7 @@ where
         }
     }
 
-    todo!()
+    Ok(JsonValue::Array(ret_val))
 }
 
 fn parse_key_pair<S>(json_str: S, index: usize) -> Result<JsonValue>
