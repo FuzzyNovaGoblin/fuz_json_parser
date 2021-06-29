@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let parsed_data = fuz_json_parser::parser::parse(data.clone());
 
     match parsed_data {
-        Ok(data) => println!("\n\nfinnished parsing\n{:?}\n{}", data,data),
+        Ok(data) => println!("\n\nfinnished parsing\n{:?}\n{}", data, data),
         Err(e) => println!("failed to finnish parse with error\n```\n{}\n```", e),
     }
 
