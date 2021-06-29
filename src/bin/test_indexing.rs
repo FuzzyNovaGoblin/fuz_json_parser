@@ -11,4 +11,5 @@ fn main() {
     println!("\n{:?}\n", data["thang"]);
     println!("\n{:?}\n", data["sub-obj"]);
     println!("\n{:?}\n", data["sub-obj"]["sub-obj"]["val2"]);
+    println!("\n{:?}\n", data["sub-obj"]["sub-obj"]["val2"].unwrap_int());
 }

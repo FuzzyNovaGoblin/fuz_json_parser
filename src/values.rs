@@ -1,3 +1,4 @@
+use core::panic;
 use std::{collections::HashMap, fmt::Display, ops::Index};
 
 #[derive(Debug)]
@@ -89,6 +90,51 @@ impl Index<&str> for JsonValue {
         match self {
             JsonValue::Obj(h_map) => h_map.index(index),
             _ => &JsonValue::Null,
+        }
+    }
+}
+
+impl JsonValue {
+    pub fn unwrap_int(&self) -> i128 {
+        match self {
+            JsonValue::Num(num) => num.unwrap_int(),
+            _ => panic!("expected Int"),
+        }
+    }
+
+    pub fn unwrap_float(&self) -> f64 {
+        match self {
+            JsonValue::Num(num) => num.unwrap_float(),
+            _ => panic!("expected Float"),
+        }
+    }
+
+    pub fn unwrap_bool(&self) -> bool {
+        match self {
+            JsonValue::Bool(b_val) => *b_val,
+            _ => panic!("expected Bool"),
+        }
+    }
+    pub fn unwrap_string(&self) -> &str {
+        match self {
+            JsonValue::String(s_val) => s_val.as_str(),
+            _ => panic!("expected String"),
+        }
+    }
+}
+
+impl JsonNum {
+    pub fn unwrap_int(&self) -> i128 {
+        match self {
+            JsonNum::Int(inum) => *inum,
+            JsonNum::Float(_) => panic!("expected Int found Float"),
+        }
+    }
+
+    pub fn unwrap_float(&self) -> f64 {
+        match self {
+            JsonNum::Int(_) => panic!("expected Float found Int"),
+            JsonNum::Float(fnum) => *fnum,
         }
     }
 }
