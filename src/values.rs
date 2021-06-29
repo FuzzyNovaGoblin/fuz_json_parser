@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::HashMap, fmt::Display, ops::Index};
 
 #[derive(Debug)]
 pub enum JsonNum {
@@ -68,5 +68,27 @@ impl Display for JsonValue {
 impl Default for JsonValue {
     fn default() -> Self {
         JsonValue::Null
+    }
+}
+
+impl Index<usize> for JsonValue {
+    type Output = JsonValue;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match self {
+            JsonValue::Array(arr) => &arr[index],
+            _ => &JsonValue::Null,
+        }
+    }
+}
+
+impl Index<&str> for JsonValue {
+    type Output = JsonValue;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        match self {
+            JsonValue::Obj(h_map) => h_map.index(index),
+            _ => &JsonValue::Null,
+        }
     }
 }

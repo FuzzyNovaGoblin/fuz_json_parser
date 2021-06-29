@@ -18,7 +18,7 @@ impl InQuotes {
         }
     }
 
-    pub fn matches_corisponding(&self, quote_char: char) -> bool {
+    pub fn _matches_corisponding(&self, quote_char: char) -> bool {
         match self {
             InQuotes::False => false,
             InQuotes::Single => quote_char == '\'',
