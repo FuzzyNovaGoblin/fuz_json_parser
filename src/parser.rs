@@ -129,30 +129,34 @@ where
     S: AsRef<str>,
 {
     let json_str = json_str.as_ref().trim();
-    if let Some("\"") = json_str.get(0..1) {
-        if json_str.len() < 2 {
-            return Err(String::from("Invalid string"));
+    match json_str.get(0..1) {
+        Some("\"") | Some("\'") => {
+            if json_str.len() < 2 {
+                return Err(String::from("Invalid string"));
+            }
+            let tmp_str = json_str[1..json_str.len() - 1].to_owned();
+
+            let mut is_escaped = false;
+            let escaped_str = tmp_str
+                .chars()
+                .filter(|c| {
+                    if is_escaped {
+                        is_escaped = false;
+                        return true;
+                    }
+                    if *c == '\\' {
+                        is_escaped = true;
+                        return false;
+                    }
+                    true
+                })
+                .collect();
+
+            return Ok(JsonValue::String(escaped_str));
         }
-        let tmp_str = json_str[1..json_str.len() - 1].to_owned();
+        (_) => (),
+    };
 
-        let mut is_escaped = false;
-        let escaped_str = tmp_str
-            .chars()
-            .filter(|c| {
-                if is_escaped {
-                    is_escaped = false;
-                    return true;
-                }
-                if *c == '\\' {
-                    is_escaped = true;
-                    return false;
-                }
-                true
-            })
-            .collect();
-
-        return Ok(JsonValue::String(escaped_str));
-    }
     match json_str.find(".") {
         Some(_) => match json_str.parse() {
             Ok(v) => Ok(JsonValue::Num(JsonNum::Float(v))),
