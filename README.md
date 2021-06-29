@@ -1,11 +1,3 @@
-# Learning to make a JSON parser
+# JSON parser for rust
 
-
-
-
-
-- tokenizer uses regular expresions such as `\d+` as `number`
-   - `\d` means didgit and `+` means 1 or more times
-
-- parser uses BNF or Bakus-Naur form
-   - BNF is what is used to describe syntax
+not a very fast or even good json parser, this is more of just an exercise

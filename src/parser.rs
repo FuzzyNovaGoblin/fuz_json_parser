@@ -46,7 +46,7 @@ where
             }
             _ => match tmp.find(":") {
                 Some(index) => parse_key_pair(tmp, index),
-                None => parse_string_or_num(tmp),
+                None => parse_single_value(tmp),
             },
         }
     }
@@ -124,7 +124,7 @@ where
     ))
 }
 
-fn parse_string_or_num<S>(json_str: S) -> Result<JsonValue>
+fn parse_single_value<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,
 {
@@ -154,8 +154,14 @@ where
 
             return Ok(JsonValue::String(escaped_str));
         }
-        (_) => (),
+        _ => (),
     };
+
+    match json_str.to_ascii_lowercase().as_str() {
+        "true"=> return Ok(JsonValue::Bool(true)),
+        "false"=> return Ok(JsonValue::Bool(false)),
+        _=>()
+    }
 
     match json_str.find(".") {
         Some(_) => match json_str.parse() {

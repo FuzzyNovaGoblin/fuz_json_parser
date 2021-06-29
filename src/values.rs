@@ -27,6 +27,7 @@ impl Display for JsonNum {
     }
 }
 
+
 impl Display for JsonValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -66,12 +67,21 @@ impl Display for JsonValue {
     }
 }
 
+
+
+/// Default for `JsonValue` is `JsonValue::Null`
 impl Default for JsonValue {
+
+    /// gives the default `JsonValue` value
+    /// which is `JsonValue::Null`
     fn default() -> Self {
         JsonValue::Null
     }
 }
 
+
+/// use to index `JsonValue::Array`
+/// if used on any other type then return is `JsonValue::Null`
 impl Index<usize> for JsonValue {
     type Output = JsonValue;
 
