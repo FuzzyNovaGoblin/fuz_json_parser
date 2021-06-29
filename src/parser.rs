@@ -157,6 +157,10 @@ where
         _ => (),
     };
 
+    if json_str.to_ascii_lowercase().as_str() == "null"{
+        return Ok(JsonValue::Null);
+    }
+
     match json_str.to_ascii_lowercase().as_str() {
         "true"=> return Ok(JsonValue::Bool(true)),
         "false"=> return Ok(JsonValue::Bool(false)),
