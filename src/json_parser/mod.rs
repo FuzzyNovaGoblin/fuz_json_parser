@@ -10,8 +10,12 @@ use states::InQuotes;
 
 use self::states::BlockType;
 
-pub fn parse(json_str: String) -> Result<JsonValue> {
+pub fn parse<S>(json_str: S) -> Result<JsonValue>
+where
+    S: AsRef<str>,
+{
     let json_string: String = json_str
+        .as_ref()
         .chars()
         .map(|c| match c {
             ']' => String::from(",]"),
@@ -157,14 +161,14 @@ where
         _ => (),
     };
 
-    if json_str.to_ascii_lowercase().as_str() == "null"{
+    if json_str.to_ascii_lowercase().as_str() == "null" {
         return Ok(JsonValue::Null);
     }
 
     match json_str.to_ascii_lowercase().as_str() {
-        "true"=> return Ok(JsonValue::Bool(true)),
-        "false"=> return Ok(JsonValue::Bool(false)),
-        _=>()
+        "true" => return Ok(JsonValue::Bool(true)),
+        "false" => return Ok(JsonValue::Bool(false)),
+        _ => (),
     }
 
     match json_str.find(".") {

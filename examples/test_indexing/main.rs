@@ -1,5 +1,5 @@
 use std::fs;
-use fuz_json_parser::parser::parse;
+use fuz_json_parser::json_parser::parse;
 
 
 fn main() {
