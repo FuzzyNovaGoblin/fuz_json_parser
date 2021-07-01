@@ -10,6 +10,10 @@ use states::InQuotes;
 
 use self::states::BlockType;
 
+
+/// the main parsing method entry point
+/// returns the parsed data as a `JsonValue` or
+/// it errors and returns an error message
 pub fn parse<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,
@@ -32,6 +36,10 @@ where
     )
 }
 
+
+/// the recursive main section of the parsing algorithm
+/// given any properly formated json string or subset value
+/// it will return the corisponding `JsonValue` type
 fn main_parse<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,
@@ -56,6 +64,8 @@ where
     }
 }
 
+/// parses a block of the json string
+/// the block is either an array or an object
 fn parse_block<S>(json_str: S, block_type: BlockType) -> Result<JsonValue>
 where
     S: AsRef<str>,
@@ -113,6 +123,9 @@ where
     }
 }
 
+
+/// parse a key value pair
+/// from `AsRef<str>` parse out the `String` key and `JsonValue` value
 fn parse_key_pair<S>(json_str: S, index: usize) -> Result<JsonValue>
 where
     S: AsRef<str>,
@@ -128,6 +141,15 @@ where
     ))
 }
 
+
+/// parse a single value from an `AsRef<str>` to `JsonValue`
+///
+/// the single value can be one of the following
+/// - string
+/// - int
+/// - float
+/// - bool
+/// - null
 fn parse_single_value<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,

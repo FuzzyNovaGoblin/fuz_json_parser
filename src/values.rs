@@ -27,11 +27,10 @@ impl Display for JsonNum {
     }
 }
 
-
 impl Display for JsonValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            JsonValue::Null => write!(f, "NULL"),
+            JsonValue::Null => write!(f, "null"),
             JsonValue::Bool(json_val) => write!(f, "{}", json_val),
             JsonValue::Num(json_val) => write!(f, "{}", json_val),
             JsonValue::String(json_val) => write!(f, "\"{}\"", json_val),
@@ -54,7 +53,7 @@ impl Display for JsonValue {
                     let last_index = json_val.len() - 1;
 
                     for (i, (name, val)) in json_val.iter().enumerate() {
-                        dsply_str.push_str(format!("\"{}\" : {}", name, *val).as_str());
+                        dsply_str.push_str(format!("\"{}\":{}", name, *val).as_str());
                         if i != last_index {
                             dsply_str.push_str(", ");
                         }
@@ -67,11 +66,8 @@ impl Display for JsonValue {
     }
 }
 
-
-
 /// Default for `JsonValue` is `JsonValue::Null`
 impl Default for JsonValue {
-
     /// gives the default `JsonValue` value
     /// which is `JsonValue::Null`
     fn default() -> Self {
@@ -79,12 +75,14 @@ impl Default for JsonValue {
     }
 }
 
-
-/// use to index `JsonValue::Array`
+/// trait implementation for `JsonValue::Array`
+///
 /// if used on any other type then return is `JsonValue::Null`
 impl Index<usize> for JsonValue {
     type Output = JsonValue;
 
+    /// use to index `JsonValue::Array`
+    /// if used on any other type then return is `JsonValue::Null`
     fn index(&self, index: usize) -> &Self::Output {
         match self {
             JsonValue::Array(arr) => &arr[index],
@@ -93,9 +91,14 @@ impl Index<usize> for JsonValue {
     }
 }
 
+/// trait implementation for `JsonValue::Obj`
+///
+/// if used on any other type then return is `JsonValue::Null`
 impl Index<&str> for JsonValue {
     type Output = JsonValue;
 
+    /// use to get value from `JsonValue::Obj`
+    /// if used on any other type then return is `JsonValue::Null`
     fn index(&self, index: &str) -> &Self::Output {
         match self {
             JsonValue::Obj(h_map) => h_map.index(index),
@@ -104,7 +107,12 @@ impl Index<&str> for JsonValue {
     }
 }
 
+/// any unwrap function used on the wrong type will panic.
+/// only `JsonValue::String`, `JsonValue::Num`, `JsonValue::bool` have unwrap methods.
+/// `JsonValue::Obj`, JsonValue::Arr`, and `JsonValue::Null` cannot be unwraped
 impl JsonValue {
+    /// use on `JsonValue::Num(JsonNum::Int)` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_int(&self) -> i128 {
         match self {
             JsonValue::Num(num) => num.unwrap_int(),
@@ -112,6 +120,8 @@ impl JsonValue {
         }
     }
 
+    /// use on `JsonValue::Num(JsonNum::Float)` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_float(&self) -> f64 {
         match self {
             JsonValue::Num(num) => num.unwrap_float(),
@@ -119,12 +129,17 @@ impl JsonValue {
         }
     }
 
+    /// use on `JsonValue::Bool` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_bool(&self) -> bool {
         match self {
             JsonValue::Bool(b_val) => *b_val,
             _ => panic!("expected Bool"),
         }
     }
+
+    /// use on `JsonValue::String` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_string(&self) -> &str {
         match self {
             JsonValue::String(s_val) => s_val.as_str(),
@@ -134,6 +149,8 @@ impl JsonValue {
 }
 
 impl JsonNum {
+    /// use on `JsonNum::Int` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_int(&self) -> i128 {
         match self {
             JsonNum::Int(inum) => *inum,
@@ -141,6 +158,8 @@ impl JsonNum {
         }
     }
 
+    /// use on `JsonNum::Float` to get value.
+    /// will panic if used on other type.
     pub fn unwrap_float(&self) -> f64 {
         match self {
             JsonNum::Int(_) => panic!("expected Float found Int"),
