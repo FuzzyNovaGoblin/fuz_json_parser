@@ -17,6 +17,10 @@ pub fn parse<S>(json_str: S) -> Result<JsonValue>
 where
     S: AsRef<str>,
 {
+    if json_str.as_ref().trim().len() == 0 {
+        return Ok(JsonValue::Null);
+    }
+
     let json_string: String = json_str
         .as_ref()
         .chars()
@@ -100,12 +104,12 @@ where
                 }
                 token_start = i + 1;
             }
-            '\"' => match in_quotes {
+            '\"' => match &in_quotes {
                 InQuotes::False => in_quotes = InQuotes::Double,
                 InQuotes::Single => continue,
                 InQuotes::Double => in_quotes = InQuotes::False,
             },
-            '\'' => match in_quotes {
+            '\'' => match &in_quotes {
                 InQuotes::False => in_quotes = InQuotes::Single,
                 InQuotes::Single => in_quotes = InQuotes::False,
                 InQuotes::Double => continue,
@@ -115,6 +119,10 @@ where
             _ => {}
         }
     }
+    if in_quotes != InQuotes::False {
+        return Err("Unmatched quote".into());
+    }
+
     match block_type {
         BlockType::Array => Ok(JsonValue::Array(ret_vec)),
         BlockType::Object => Ok(JsonValue::Obj(ret_map)),
@@ -161,7 +169,12 @@ where
             if json_str.len() < 2 {
                 return Err(String::from("Invalid string"));
             }
-            let tmp_str = json_str[1..json_str.len() - 1].to_owned();
+            let tmp_str = match (json_str.chars().nth(0), json_str.chars().last()) {
+                (Some('\''), Some('\'')) | (Some('\"'), Some('\"')) => {
+                    (&json_str[1..json_str.len() - 1]).to_owned()
+                }
+                _ => return Err(format!("unmatched quote at {}", json_str)),
+            };
 
             let mut is_escaped = false;
             let escaped_str = tmp_str
