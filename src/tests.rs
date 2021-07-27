@@ -201,4 +201,17 @@ mod invalid_json {
     fn invalid_json7() {
         assert!(json_parse("[\\\"abc]").is_err());
     }
+
+    #[test]
+    fn invalid_json8() {
+        assert!(json_parse("[{]}").is_err());
+    }
+
+    #[test]
+    fn invalid_json9() {
+        assert!(json_parse("}").is_err());
+        assert!(json_parse("{").is_err());
+        assert!(json_parse("]").is_err());
+        assert!(json_parse("[").is_err());
+    }
 }
