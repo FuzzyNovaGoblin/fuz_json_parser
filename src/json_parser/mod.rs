@@ -75,18 +75,23 @@ where
             if $i == token_start || depth > 1 || in_quotes.is_insided() {
                 continue;
             }
-            match block_type {
-                BlockType::Array => ret_vec.push(main_parse(&json_str.as_ref()[token_start..$i])?),
-                BlockType::Object => {
-                    if (last_colon.is_none()) {
-                        return Err("Missing colon for key pair".to_string());
+            let trimmed = &json_str.as_ref()[token_start..$i].trim();
+            if trimmed.len() > 0 {
+                match block_type {
+                    BlockType::Array => {
+                        ret_vec.push(main_parse(trimmed)?)
                     }
-                    if let Ok(KeyPair(k, v)) = parse_key_pair(
-                        &json_str.as_ref()[token_start..$i],
-                        last_colon.unwrap() - token_start,
-                    ) {
-                        last_colon = None;
-                        ret_map.insert(k, v);
+                    BlockType::Object => {
+                        if (last_colon.is_none()) {
+                            return Err("Missing colon for key pair".to_string());
+                        }
+                        if let Ok(KeyPair(k, v)) = parse_key_pair(
+                            &json_str.as_ref()[token_start..$i],
+                            last_colon.unwrap() - token_start,
+                        ) {
+                            last_colon = None;
+                            ret_map.insert(k, v);
+                        }
                     }
                 }
             }
@@ -205,11 +210,8 @@ where
         _ => (),
     };
 
-    if json_str.to_ascii_lowercase().as_str() == "null" {
-        return Ok(JsonValue::Null);
-    }
-
     match json_str.to_ascii_lowercase().as_str() {
+        "null" => return Ok(JsonValue::Null),
         "true" => return Ok(JsonValue::Bool(true)),
         "false" => return Ok(JsonValue::Bool(false)),
         _ => (),

@@ -153,6 +153,16 @@ mod edge_cases {
             ]))
         );
     }
+
+    #[test]
+    fn edge_cases4() {
+        pub use super::*;
+
+        assert_eq!(
+            json_parse("[          ]"),
+            Ok(Array(vec![]))
+        );
+    }
 }
 mod invalid_json {
     pub use super::*;
