@@ -36,30 +36,54 @@ impl Display for JsonValue {
             JsonValue::String(json_val) => write!(f, "\"{}\"", json_val),
             JsonValue::Array(json_val) => {
                 let mut dsply_str = String::new();
+                let is_large = json_val.len() >= 10;
                 if json_val.len() > 0 {
                     let last_index = json_val.len() - 1;
                     for (i, v) in json_val.iter().enumerate() {
+                        if is_large && i % 5 == 0 {
+                            dsply_str.push_str("   ");
+                        }
                         dsply_str.push_str(v.to_string().as_str());
                         if i != last_index {
                             dsply_str.push_str(", ");
+                            if is_large && (i + 1) % 5 == 0 {
+                                dsply_str.push('\n');
+                            }
                         }
                     }
                 }
-                write!(f, "[{}]", dsply_str)
+                write!(
+                    f,
+                    "[{nl}{}{nl}]",
+                    dsply_str,
+                    nl = if is_large { "\n" } else { "" }
+                )
             }
             JsonValue::Obj(json_val) => {
                 let mut dsply_str = String::new();
+                let is_large = json_val.len() >= 10;
                 if json_val.len() > 0 {
                     let last_index = json_val.len() - 1;
 
                     for (i, (name, val)) in json_val.iter().enumerate() {
+                        if is_large && i % 5 == 0 {
+                            dsply_str.push_str("   ");
+                        }
                         dsply_str.push_str(format!("\"{}\":{}", name, *val).as_str());
                         if i != last_index {
                             dsply_str.push_str(", ");
+                            if is_large && (i + 1) % 5 == 0 {
+                                dsply_str.push('\n');
+                            }
                         }
                     }
                 }
-                write!(f, "{{{}}}", dsply_str)
+                write!(
+                    f,
+                    "{{{nl}{}{nl}}}",
+                    dsply_str,
+                    nl = if is_large { "\n" } else { "" }
+                )
             }
             JsonValue::KeyPair(str, j_val) => write!(f, "\"{}\":{}", str, *j_val),
         }
@@ -144,6 +168,49 @@ impl JsonValue {
         match self {
             JsonValue::String(s_val) => s_val.as_str(),
             _ => panic!("expected String"),
+        }
+    }
+}
+
+impl JsonValue {
+    /// `encode` will turn a `JsonValue` into a `String`
+    ///
+    /// this is the same string that would come from the `Display` trait
+    /// but with less white space
+    pub fn encode(&self) -> String {
+        match self {
+            JsonValue::Null => format!("null"),
+            JsonValue::Bool(json_val) => format!("{}", json_val),
+            JsonValue::Num(json_val) => format!("{}", json_val),
+            JsonValue::String(json_val) => format!("\"{}\"", json_val),
+            JsonValue::Array(json_val) => {
+                let mut dsply_str = String::new();
+                if json_val.len() > 0 {
+                    let last_index = json_val.len() - 1;
+                    for (i, v) in json_val.iter().enumerate() {
+                        dsply_str.push_str(v.encode().as_str());
+                        if i != last_index {
+                            dsply_str.push(',');
+                        }
+                    }
+                }
+                format!("[{}]", dsply_str)
+            }
+            JsonValue::Obj(json_val) => {
+                let mut dsply_str = String::new();
+                if json_val.len() > 0 {
+                    let last_index = json_val.len() - 1;
+
+                    for (i, (name, val)) in json_val.iter().enumerate() {
+                        dsply_str.push_str(format!("\"{}\":{}", name, val.encode()).as_str());
+                        if i != last_index {
+                            dsply_str.push(',');
+                        }
+                    }
+                }
+                format!("{{{}}}", dsply_str)
+            }
+            JsonValue::KeyPair(str, j_val) => format!("\"{}\":{}", str, j_val.encode()),
         }
     }
 }

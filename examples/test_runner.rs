@@ -7,12 +7,13 @@ const PROGRAM_NAME: &'static str = "fuz_json_parser test file runner";
 const PROGRAM_DESC: &'static str = "choose a test file and run it through the fuz_json_parser";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (file_path, use_pretty, use_debug) = match parse()? {
+    let (file_path, use_pretty, use_debug, use_encode) = match parse()? {
         ParseResults::Data {
             debug,
             path,
             pretty,
-        } => (path, pretty, debug),
+            encode
+        } => (path, pretty, debug, encode),
         ParseResults::Err => return Err("no valid test file given".into()),
         ParseResults::DontRun => return Ok(()),
     };
@@ -32,9 +33,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{:?}\n", parsed_data);
     }
 
+    if use_encode {
+        println!("{}\n", parsed_data.encode());
+    }
+
     if use_pretty {
         println!("{}\n", parsed_data);
     }
+
 
     Ok(())
 }
@@ -44,6 +50,7 @@ enum ParseResults {
         path: String,
         pretty: bool,
         debug: bool,
+        encode: bool
     },
     DontRun,
     Err,
@@ -62,6 +69,8 @@ fn parse() -> Result<ParseResults, ArgsError> {
     );
     args.flag("P", "no-pretty", "don't use display print output");
     args.flag("D", "no-debug", "don't use debug print output");
+    args.flag("e", "encode-fmt", "print with encode format");
+    args.flag("E", "only-encode-fmt", "only print with encode format");
 
     args.parse_from_cli()?;
 
@@ -75,8 +84,9 @@ fn parse() -> Result<ParseResults, ArgsError> {
     match file_path {
         Ok(path) => Ok(ParseResults::Data {
             path,
-            debug: !args.value_of("no-debug")?,
-            pretty: !args.value_of("no-pretty")?,
+            debug: !args.value_of("no-debug")? && !args.value_of("only-encode-fmt")?,
+            pretty: !args.value_of("no-pretty")? && !args.value_of("only-encode-fmt")?,
+            encode: args.value_of("encode-fmt")? || args.value_of("only-encode-fmt")?
         }),
         Err(_) => Ok(ParseResults::Err),
     }
