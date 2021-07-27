@@ -10,7 +10,6 @@ use states::InQuotes;
 
 use self::states::BlockType;
 
-
 /// the main parsing method entry point
 /// returns the parsed data as a `JsonValue` or
 /// it errors and returns an error message
@@ -35,7 +34,6 @@ where
             .replace("  ", " "),
     )
 }
-
 
 /// the recursive main section of the parsing algorithm
 /// given any properly formated json string or subset value
@@ -71,7 +69,7 @@ where
     S: AsRef<str>,
 {
     let mut ret_vec: Vec<JsonValue> = Vec::new();
-    let mut ret_map: HashMap<String, Box<JsonValue>> = HashMap::new();
+    let mut ret_map: HashMap<String, JsonValue> = HashMap::new();
     let mut depth = 1;
     let mut token_start = 0;
     let mut skip_next: bool = false;
@@ -96,7 +94,7 @@ where
                         if let Ok(JsonValue::KeyPair(k, v)) =
                             main_parse(&json_str.as_ref()[token_start..i])
                         {
-                            ret_map.insert(k, v);
+                            ret_map.insert(k, *v);
                         }
                     }
                 }
@@ -123,7 +121,6 @@ where
     }
 }
 
-
 /// parse a key value pair
 /// from `AsRef<str>` parse out the `String` key and `JsonValue` value
 fn parse_key_pair<S>(json_str: S, index: usize) -> Result<JsonValue>
@@ -136,11 +133,15 @@ where
     let part2 = part2.trim();
 
     Ok(JsonValue::KeyPair(
-        part1.trim_matches('\"').to_owned(),
+        match (part1.chars().nth(0), part1.chars().last()) {
+            (Some('\''), Some('\'')) | (Some('\"'), Some('\"')) => {
+                (&part1[1..part1.len() - 1]).to_owned()
+            }
+            _ => part1.to_owned(),
+        },
         Box::new(main_parse(part2.to_owned())?),
     ))
 }
-
 
 /// parse a single value from an `AsRef<str>` to `JsonValue`
 ///
