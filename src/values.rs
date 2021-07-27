@@ -1,20 +1,20 @@
 use core::panic;
 use std::{collections::HashMap, fmt::Display, ops::Index};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum JsonNum {
     Int(i128),
     Float(f64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum JsonValue {
     Null,
     Bool(bool),
     Num(JsonNum),
     String(String),
     Array(Vec<JsonValue>),
-    Obj(HashMap<String, Box<JsonValue>>),
+    Obj(HashMap<String, JsonValue>),
     KeyPair(String, Box<JsonValue>),
 }
 
