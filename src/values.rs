@@ -1,21 +1,20 @@
 use core::panic;
 use std::{collections::HashMap, fmt::Display, ops::Index};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum JsonNum {
     Int(i128),
     Float(f64),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum JsonValue {
     Null,
     Bool(bool),
     Num(JsonNum),
     String(String),
     Array(Vec<JsonValue>),
-    Obj(HashMap<String, Box<JsonValue>>),
-    KeyPair(String, Box<JsonValue>),
+    Obj(HashMap<String, JsonValue>),
 }
 
 impl Display for JsonNum {
@@ -85,7 +84,6 @@ impl Display for JsonValue {
                     nl = if is_large { "\n" } else { "" }
                 )
             }
-            JsonValue::KeyPair(str, j_val) => write!(f, "\"{}\":{}", str, *j_val),
         }
     }
 }
@@ -210,7 +208,6 @@ impl JsonValue {
                 }
                 format!("{{{}}}", dsply_str)
             }
-            JsonValue::KeyPair(str, j_val) => format!("\"{}\":{}", str, j_val.encode()),
         }
     }
 }

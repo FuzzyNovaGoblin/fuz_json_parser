@@ -3,7 +3,7 @@ pub enum BlockType {
     Object,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum InQuotes {
     False,
     Single,
