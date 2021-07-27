@@ -40,14 +40,19 @@ fn bools() {
     assert_eq!(json_parse("fAlSE"), Ok(Bool(false)));
 }
 
-#[test]
-fn map() {
-    assert_eq!(
-        json_parse("{\"val\": 1}"),
-        Ok(Obj(collection!("val".to_string() => Num(Int(1)))))
-    );
+mod map {
+    use super::*;
+    #[test]
+    fn map1() {
+        assert_eq!(
+            json_parse("{\"val\": 1}"),
+            Ok(Obj(collection!("val".to_string() => Num(Int(1)))))
+        );
+    }
 
-    assert_eq!(
+    #[test]
+    fn map2() {
+        assert_eq!(
         json_parse("{'val1': 1,\"val2\":2, \"val3\":\"str1\", \"val4\": 'str2', 'val5':\"str3\", 'val6': 'str4'}"), Ok(
         Obj(collection![
             "val1".to_string() => Num(Int(1)),
@@ -58,6 +63,7 @@ fn map() {
             "val6".to_string() => JsonValue::String("str4".to_string()),
         ])
     ));
+    }
 }
 
 #[test]
@@ -181,10 +187,8 @@ mod invalid_json {
         assert!(json_parse("['heds\\']").is_err());
     }
 
-
     #[test]
     fn invalid_json7() {
         assert!(json_parse("[\\\"abc]").is_err());
     }
-
 }

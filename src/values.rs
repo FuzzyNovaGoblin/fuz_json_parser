@@ -15,7 +15,6 @@ pub enum JsonValue {
     String(String),
     Array(Vec<JsonValue>),
     Obj(HashMap<String, JsonValue>),
-    KeyPair(String, Box<JsonValue>),
 }
 
 impl Display for JsonNum {
@@ -85,7 +84,6 @@ impl Display for JsonValue {
                     nl = if is_large { "\n" } else { "" }
                 )
             }
-            JsonValue::KeyPair(str, j_val) => write!(f, "\"{}\":{}", str, *j_val),
         }
     }
 }
@@ -210,7 +208,6 @@ impl JsonValue {
                 }
                 format!("{{{}}}", dsply_str)
             }
-            JsonValue::KeyPair(str, j_val) => format!("\"{}\":{}", str, j_val.encode()),
         }
     }
 }

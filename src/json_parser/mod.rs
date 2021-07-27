@@ -10,6 +10,8 @@ use states::InQuotes;
 
 use self::states::BlockType;
 
+struct KeyPair(String, JsonValue);
+
 /// the main parsing method entry point
 /// returns the parsed data as a `JsonValue` or
 /// it errors and returns an error message
@@ -21,18 +23,9 @@ where
         return Ok(JsonValue::Null);
     }
 
-    let json_string: String = json_str
-        .as_ref()
-        .chars()
-        .map(|c| match c {
-            ']' => String::from(",]"),
-            '}' => String::from(",}"),
-            other => other.to_string(),
-        })
-        .collect();
-
     main_parse(
-        json_string
+        json_str
+            .as_ref()
             .replace("\n", " ")
             .replace("\t", " ")
             .replace("  ", " "),
@@ -53,15 +46,12 @@ where
 
         match (json_char_iter.next(), json_char_iter.last()) {
             (Some('['), Some(']')) => {
-                return parse_block(&tmp[1..&tmp.len() - 1], BlockType::Array);
+                return parse_block(&tmp[1..tmp.len()], BlockType::Array);
             }
             (Some('{'), Some('}')) => {
-                return parse_block(&tmp[1..&tmp.len() - 1], BlockType::Object);
+                return parse_block(&tmp[1..tmp.len()], BlockType::Object);
             }
-            _ => match tmp.find(":") {
-                Some(index) => parse_key_pair(tmp, index),
-                None => parse_single_value(tmp),
-            },
+            _ => parse_single_value(tmp),
         }
     }
 }
@@ -78,6 +68,31 @@ where
     let mut token_start = 0;
     let mut skip_next: bool = false;
     let mut in_quotes: InQuotes = InQuotes::False;
+    let mut last_colon: Option<usize> = None;
+
+    macro_rules! on_end {
+        ($i:expr) => {
+            if $i == token_start || depth > 1 || in_quotes.is_insided() {
+                continue;
+            }
+            match block_type {
+                BlockType::Array => ret_vec.push(main_parse(&json_str.as_ref()[token_start..$i])?),
+                BlockType::Object => {
+                    if (last_colon.is_none()) {
+                        return Err("Missing colon for key pair".to_string());
+                    }
+                    if let Ok(KeyPair(k, v)) = parse_key_pair(
+                        &json_str.as_ref()[token_start..$i],
+                        last_colon.unwrap() - token_start,
+                    ) {
+                        last_colon = None;
+                        ret_map.insert(k, v);
+                    }
+                }
+            }
+            token_start = $i + 1;
+        };
+    }
 
     for (i, c) in json_str.as_ref().chars().enumerate() {
         if skip_next {
@@ -87,23 +102,9 @@ where
         match c {
             '\\' => skip_next = true,
             ',' => {
-                if i == token_start || depth > 1 || in_quotes.is_insided() {
-                    continue;
-                }
-                match block_type {
-                    BlockType::Array => {
-                        ret_vec.push(main_parse(&json_str.as_ref()[token_start..i])?)
-                    }
-                    BlockType::Object => {
-                        if let Ok(JsonValue::KeyPair(k, v)) =
-                            main_parse(&json_str.as_ref()[token_start..i])
-                        {
-                            ret_map.insert(k, *v);
-                        }
-                    }
-                }
-                token_start = i + 1;
+                on_end!(i);
             }
+            ':' => last_colon = Some(i),
             '\"' => match &in_quotes {
                 InQuotes::False => in_quotes = InQuotes::Double,
                 InQuotes::Single => continue,
@@ -114,8 +115,15 @@ where
                 InQuotes::Single => in_quotes = InQuotes::False,
                 InQuotes::Double => continue,
             },
-            '[' | '{' => depth += 1,
-            ']' | '}' => depth -= 1,
+            '[' | '{' => {
+                depth += 1;
+            }
+            ']' | '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    on_end!(i);
+                }
+            }
             _ => {}
         }
     }
@@ -131,7 +139,7 @@ where
 
 /// parse a key value pair
 /// from `AsRef<str>` parse out the `String` key and `JsonValue` value
-fn parse_key_pair<S>(json_str: S, index: usize) -> Result<JsonValue>
+fn parse_key_pair<S>(json_str: S, index: usize) -> Result<KeyPair>
 where
     S: AsRef<str>,
 {
@@ -140,14 +148,14 @@ where
     let part1 = part1.trim();
     let part2 = part2.trim();
 
-    Ok(JsonValue::KeyPair(
+    Ok(KeyPair(
         match (part1.chars().nth(0), part1.chars().last()) {
             (Some('\''), Some('\'')) | (Some('\"'), Some('\"')) => {
                 (&part1[1..part1.len() - 1]).to_owned()
             }
             _ => part1.to_owned(),
         },
-        Box::new(main_parse(part2.to_owned())?),
+        main_parse(part2.to_owned())?,
     ))
 }
 
