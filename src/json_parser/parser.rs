@@ -72,13 +72,18 @@ fn assert_string<S: AsRef<str>>(
 }
 
 /// check if the character at the cursor is a digit
-fn is_digit(state: &mut ParserState) -> bool {
-    if let Some(c) = peek(state) {
-        if c >= (48 as char) && c <= (57 as char) {
-            return true;
-        }
+fn is_number_part(character: char) -> bool {
+    match character {
+        '-' => true,
+        c => c >= (48 as char) && c <= (57 as char),
     }
-    false
+}
+
+fn consume_number(state: &mut ParserState) -> String {
+    state
+        .take_while(|(_, c)| is_number_part(*c))
+        .map(|(_, c)| c)
+        .collect::<String>()
 }
 
 /// check if the character at the cursor is white space
@@ -97,51 +102,22 @@ fn consume_whitespace(state: &mut ParserState) {
 ///
 /// return will be a [JsonValue::Num](crate::values::JsonValue::Num) containing either
 /// [JsonNum::Int](crate::values::JsonNum::Int) or [JsonNum::Float](crate::values::JsonNum::Float)
-fn parse_number(state: &mut ParserState) -> JsonValue {
-    let is_negetive = {
-        if let Some('-') = peek(state) {
-            advance(state);
-            true
-        } else {
-            false
-        }
-    };
-
-    let int_number = parse_integer(state);
+fn parse_number(state: &mut ParserState) -> Result<JsonValue> {
+    let mut number_string = consume_number(state);
 
     if let Some('.') = peek(state) {
-        advance(state); // skip the .
-        JsonValue::Num(JsonNum::Float(
-            parse_float(state, int_number) * if is_negetive { -1.0 } else { 1.0 },
-        ))
+        number_string.push(advance(state).unwrap());
+        number_string += consume_number(state).as_str();
+        match number_string.parse() {
+            Ok(float) => Ok(JsonValue::Num(JsonNum::Float(float))),
+            Err(_) => todo!(),
+        }
     } else {
-        JsonValue::Num(JsonNum::Int(int_number * if is_negetive { -1 } else { 1 }))
+        match number_string.parse() {
+            Ok(int) => Ok(JsonValue::Num(JsonNum::Int(int))),
+            Err(_) => todo!(),
+        }
     }
-}
-
-/// parse integer from current position
-///
-/// used by [parse_number](#method.parse_number)
-fn parse_integer(state: &mut ParserState) -> i128 {
-    let mut build_number = 0;
-    while is_digit(state) {
-        build_number *= 10;
-        build_number += (advance(state).unwrap() as u32 - '0' as u32) as i128;
-    }
-    build_number
-}
-
-/// parse the second half of a decimal number from current position.
-/// To build the entire number the first half is passed in through `full_number`
-///
-/// used by [parse_number](#method.parse_number)
-fn parse_float(state: &mut ParserState, full_number: i128) -> f64 {
-    let mut build_number: u128 = 0;
-    while is_digit(state) {
-        build_number *= 10;
-        build_number += (advance(state).unwrap() as u32 - '0' as u32) as u128;
-    }
-    (build_number as f64) * 0.1 + full_number as f64
 }
 
 /// consumes an escape sequence and returns the intended character
@@ -248,7 +224,7 @@ fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
             Ok(JsonValue::Null)
         }
         Some('.' | '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') => {
-            Ok(parse_number(state))
+            parse_number(state)
         }
 
         Some('"') => Ok(JsonValue::String(parse_string(state)?)),
