@@ -6,8 +6,8 @@ use std::collections::HashMap;
 macro_rules! collection {
     // map-like
     ($($k:expr => $v:expr),* $(,)?) => {{
-        use std::{array::IntoIter, collections::HashMap, iter::FromIterator};
-        HashMap::<_,_>::from_iter(IntoIter::new ([$(($k, $v),)*]))
+        use std::{collections::HashMap, iter::FromIterator};
+        HashMap::<_,_>::from_iter(([$(($k, $v),)*]).into_iter())
     }};
 }
 
@@ -158,10 +158,7 @@ mod edge_cases {
     fn edge_cases4() {
         pub use super::*;
 
-        assert_eq!(
-            json_parse("[          ]"),
-            Ok(Array(vec![]))
-        );
+        assert_eq!(json_parse("[          ]"), Ok(Array(vec![])));
     }
 }
 mod invalid_json {
