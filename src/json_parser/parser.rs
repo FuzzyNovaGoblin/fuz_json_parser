@@ -235,11 +235,11 @@ fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
 /// the primary parsing function of the [ParserState] that can
 fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
     match peek(state) {
-        Some('t') => {
+        Some('t'|'T') => {
             assert_string(state, "true", true)?;
             Ok(JsonValue::Bool(true))
         }
-        Some('f') => {
+        Some('f'|'F') => {
             assert_string(state, "false", true)?;
             Ok(JsonValue::Bool(false))
         }
