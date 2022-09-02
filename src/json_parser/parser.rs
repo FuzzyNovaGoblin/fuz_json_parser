@@ -18,7 +18,10 @@ pub fn run_parse<S: AsRef<str>>(json_str: S) -> Result<JsonValue> {
     let mut state = json_str.as_ref().chars().enumerate().peekable();
 
     consume_whitespace(&mut state);
-    main_parse(&mut state)
+    match peek(&mut state) {
+        Some(_) => main_parse(&mut state),
+        None => Ok(JsonValue::Null),
+    }
 }
 
 /// look at the current charater

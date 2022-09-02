@@ -15,7 +15,7 @@ macro_rules! collection {
 fn basic_value_types() {
     assert_eq!(json_parse("[]"), Ok(Array(vec![])));
     assert_eq!(json_parse("{}"), Ok(Obj(HashMap::new())));
-    // assert_eq!(json_parse("    "), Ok(Null));
+    assert_eq!(json_parse("    "), Ok(Null));
     assert_eq!(json_parse("1"), Ok(Num(Int(1))));
     assert_eq!(json_parse("1.1"), Ok(Num(Float(1.1))));
     assert_eq!(json_parse("null"), Ok(Null));
