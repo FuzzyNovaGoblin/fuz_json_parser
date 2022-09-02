@@ -36,7 +36,7 @@ impl Display for JsonValue {
             JsonValue::Array(json_val) => {
                 let mut dsply_str = String::new();
                 let is_large = json_val.len() >= 10;
-                if json_val.len() > 0 {
+                if !json_val.is_empty() {
                     let last_index = json_val.len() - 1;
                     for (i, v) in json_val.iter().enumerate() {
                         if is_large && i % 5 == 0 {
@@ -61,7 +61,7 @@ impl Display for JsonValue {
             JsonValue::Obj(json_val) => {
                 let mut dsply_str = String::new();
                 let is_large = json_val.len() >= 10;
-                if json_val.len() > 0 {
+                if !json_val.is_empty() {
                     let last_index = json_val.len() - 1;
 
                     for (i, (name, val)) in json_val.iter().enumerate() {
@@ -177,13 +177,13 @@ impl JsonValue {
     /// but with less white space
     pub fn encode(&self) -> String {
         match self {
-            JsonValue::Null => format!("null"),
+            JsonValue::Null => "null".to_string(),
             JsonValue::Bool(json_val) => format!("{}", json_val),
             JsonValue::Num(json_val) => format!("{}", json_val),
             JsonValue::String(json_val) => format!("\"{}\"", json_val),
             JsonValue::Array(json_val) => {
                 let mut dsply_str = String::new();
-                if json_val.len() > 0 {
+                if !json_val.is_empty() {
                     let last_index = json_val.len() - 1;
                     for (i, v) in json_val.iter().enumerate() {
                         dsply_str.push_str(v.encode().as_str());
@@ -196,7 +196,7 @@ impl JsonValue {
             }
             JsonValue::Obj(json_val) => {
                 let mut dsply_str = String::new();
-                if json_val.len() > 0 {
+                if !json_val.is_empty() {
                     let last_index = json_val.len() - 1;
 
                     for (i, (name, val)) in json_val.iter().enumerate() {

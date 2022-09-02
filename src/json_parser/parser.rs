@@ -80,10 +80,7 @@ fn is_digit(state: &mut ParserState) -> bool {
 
 /// check if the character at the cursor is white space
 fn is_whitespace(state: &mut ParserState) -> bool {
-    match peek(state) {
-        Some(' ' | '\t' | '\n') => true,
-        _ => false,
-    }
+    matches!(peek(state), Some(' ' | '\t' | '\n'))
 }
 
 /// move cursor t next character that is not whitespace
@@ -235,11 +232,11 @@ fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
 /// the primary parsing function of the [ParserState] that can
 fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
     match peek(state) {
-        Some('t'|'T') => {
+        Some('t' | 'T') => {
             assert_string(state, "true", true)?;
             Ok(JsonValue::Bool(true))
         }
-        Some('f'|'F') => {
+        Some('f' | 'F') => {
             assert_string(state, "false", true)?;
             Ok(JsonValue::Bool(false))
         }

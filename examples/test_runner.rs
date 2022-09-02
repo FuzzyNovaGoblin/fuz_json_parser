@@ -3,8 +3,8 @@ use std::{env, fs, path::Path};
 use args::{Args, ArgsError};
 use getopts::Occur;
 
-const PROGRAM_NAME: &'static str = "fuz_json_parser test file runner";
-const PROGRAM_DESC: &'static str = "choose a test file and run it through the fuz_json_parser";
+const PROGRAM_NAME: &str = "fuz_json_parser test file runner";
+const PROGRAM_DESC: &str = "choose a test file and run it through the fuz_json_parser";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (file_path, use_pretty, use_debug, use_encode) = match parse()? {
