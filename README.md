@@ -1,3 +1,5 @@
 # JSON parser for rust
 
-not a very fast, or even good, json parser. This is more of just an exercise
+somewhat fast
+
+currently slow with numbers
