@@ -11,3 +11,4 @@ edition = "2021"
 [dev-dependencies]
 args = "2.2.0"
 getopts = "0.2.21"
+json = "0.12.4"

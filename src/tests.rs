@@ -197,3 +197,65 @@ mod invalid_json {
         assert!(json_parse("[").is_err());
     }
 }
+
+mod benchmarks {
+    mod fuz_json_parser {
+        extern crate test;
+
+        use crate::json_parse;
+        use std::fs;
+        use test::Bencher;
+        #[bench]
+        fn easy_bench(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/tst5").unwrap();
+            b.iter(|| {
+                let _ = json::parse(&tmp);
+            });
+        }
+
+        #[bench]
+        fn tst7(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/tst7").unwrap();
+            b.iter(|| {
+                let _ = json_parse(&tmp);
+            });
+        }
+        #[bench]
+        fn large(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/large-file.json").unwrap();
+            b.iter(|| {
+                let _ = json_parse(&tmp);
+            });
+        }
+    }
+
+    mod competition {
+        extern crate test;
+
+        use json;
+        use std::fs;
+        use test::Bencher;
+        #[bench]
+        fn easy_bench(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/tst5").unwrap();
+            b.iter(|| {
+                let _ = json::parse(&tmp);
+            });
+        }
+
+        #[bench]
+        fn tst7(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/tst7").unwrap();
+            b.iter(|| {
+                let _ = json::parse(&tmp);
+            });
+        }
+        #[bench]
+        fn large(b: &mut Bencher) {
+            let tmp = fs::read_to_string("test_files/large-file.json").unwrap();
+            b.iter(|| {
+                let _ = json::parse(&tmp);
+            });
+        }
+    }
+}
