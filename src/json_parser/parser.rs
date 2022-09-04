@@ -1,15 +1,16 @@
 use std::{
     collections::HashMap,
+    fmt::format,
     iter::{Enumerate, Peekable},
     str::Chars,
 };
 
-use super::error::Result;
+use crate::error::Result;
 use crate::values::{JsonNum, JsonValue};
 
-const UNEXPECTED_END_OF_STRING: &str = "Invalid JSON\t unexpected end of string";
+use super::UNEXPECTED_END_OF_STRING;
 
-/// state of parseing function
+/// state of parseing function,
 /// holds cursor and string to be parsed
 type ParserState<'a> = Peekable<Enumerate<Chars<'a>>>;
 
@@ -25,19 +26,19 @@ pub fn run_parse<S: AsRef<str>>(json_str: S) -> Result<JsonValue> {
 }
 
 /// look at the current charater
-fn peek(state: &mut ParserState) -> Option<char> {
+pub fn peek(state: &mut ParserState) -> Option<char> {
     state.peek().map(|(_, c)| *c)
 }
 
 /// return the current character and cursor to the next position
-fn advance(state: &mut ParserState) -> Option<char> {
+pub fn advance(state: &mut ParserState) -> Option<char> {
     state.next().map(|(_, c)| c)
 }
 
 /// assert that the current character is the expected character `c`
-///
-/// if `ignore_case` is `true` the check will be preformed without considering the case of the character
-fn assert_char(state: &mut ParserState, mut c: char, ignore_case: bool) -> Result<()> {
+pub fn assert_char(state: &mut ParserState, mut c: char, ignore_case: bool) -> Result<()> {
+    //!
+    //! if `ignore_case` is `true` the check will be preformed without considering the case of the character
     if ignore_case {
         c = c.to_ascii_lowercase();
     }
@@ -57,8 +58,45 @@ fn assert_char(state: &mut ParserState, mut c: char, ignore_case: bool) -> Resul
     }
 }
 
-/// uses [assert_char](ParserState::assert_char) to assert that the next characters are equal to the provided string
-fn assert_string<S: AsRef<str>>(
+/// check if the current character matches a character `c`
+pub fn check_char(state: &mut ParserState, check_against_char: char) -> bool {
+    //!
+    //! similar to [assert_char] but only consumes the character if it does match, useful for control flow
+    //!
+    //! if `ignore_case` is `true` the check will be preformed without considering the case of the character
+    //!
+    //! # Example
+    //! instead of using [peek] then [advance] if the returned character was equal, you can
+    //! use [check_char] then branch based on the returned value
+    //! ```
+    //! use fuz_json_parser::json_parser::parser::{advance, peek, create_state};
+    //!
+    //! let mut state = create_state("-127");
+    //! let is_negative = matches!(peek(&mut state), Some('-'));
+    //!
+    //! if is_negative {
+    //!     advance(&mut state);
+    //! }
+    //! ```
+    //! vs
+    //! ```
+    //! use fuz_json_parser::json_parser::parser::{check_char, create_state};
+    //!
+    //! let mut state = create_state("-127");
+    //! let is_negative = check_char(&mut state, '-');
+    //! ```
+
+    match peek(state) {
+        Some(c) if c == check_against_char => {
+            advance(state);
+            true
+        }
+        _ => false,
+    }
+}
+
+/// uses [assert_char] to assert that the next characters are equal to the provided string
+pub fn assert_string<S: AsRef<str>>(
     state: &mut ParserState,
     string: S,
     ignore_case: bool,
@@ -74,59 +112,71 @@ fn assert_string<S: AsRef<str>>(
 /// check if the character at the cursor is a digit
 fn is_number_part(character: char) -> bool {
     match character {
-        '-' => true,
+        '-' | '.' => true,
         c => c >= (48 as char) && c <= (57 as char),
     }
 }
 
-fn consume_number(state: &mut ParserState) -> String {
+/// create an integer from digits in [state](ParserState)
+pub fn consume_number(state: &mut ParserState) -> String {
+    //!
+    //! consumes characters in the [state](ParserState) until a
+    //! character that is not a digit is found
+    //!
+    //! the returned value is a [String] containing all the digits
+
     state
-        .take_while(|(_, c)| is_number_part(*c))
+        .take(
+            state
+                .clone()
+                .take_while(|(_, c)| is_number_part(*c))
+                .count(),
+        )
         .map(|(_, c)| c)
         .collect::<String>()
 }
 
 /// check if the character at the cursor is white space
-fn is_whitespace(state: &mut ParserState) -> bool {
+pub fn is_whitespace(state: &mut ParserState) -> bool {
     matches!(peek(state), Some(' ' | '\t' | '\n'))
 }
 
 /// move cursor t next character that is not whitespace
-fn consume_whitespace(state: &mut ParserState) {
+pub fn consume_whitespace(state: &mut ParserState) {
     while is_whitespace(state) {
         advance(state);
     }
 }
+/// parse [JsonValue::Num](crate::values::JsonValue::Num) from [ParserState]
+pub fn parse_number(state: &mut ParserState) -> Result<JsonValue> {
+    //!
+    //! return will be a [JsonValue::Num](crate::values::JsonValue::Num) containing either
+    //! [JsonNum::Int](crate::values::JsonNum::Int) or [JsonNum::Float](crate::values::JsonNum::Float)
 
-/// parse [JsonValue](crate::values::JsonValue) from current position
-///
-/// return will be a [JsonValue::Num](crate::values::JsonValue::Num) containing either
-/// [JsonNum::Int](crate::values::JsonNum::Int) or [JsonNum::Float](crate::values::JsonNum::Float)
-fn parse_number(state: &mut ParserState) -> Result<JsonValue> {
-    let mut number_string = consume_number(state);
+    let number_string = consume_number(state);
 
-    if let Some('.') = peek(state) {
-        number_string.push(advance(state).unwrap());
-        number_string += consume_number(state).as_str();
+    if number_string.contains('.'){
+        // let number_string = format!("{}.{}", number_string, consume_number(state));
+
         match number_string.parse() {
             Ok(float) => Ok(JsonValue::Num(JsonNum::Float(float))),
-            Err(_) => todo!(),
+            Err(e) => Err(format!("failed to parse number as f64 {}", e).into()),
         }
     } else {
         match number_string.parse() {
             Ok(int) => Ok(JsonValue::Num(JsonNum::Int(int))),
-            Err(_) => todo!(),
+            Err(e) => Err(format!("failed to parse number as i128 {}", e).into()),
         }
     }
 }
 
 /// consumes an escape sequence and returns the intended character
-fn escape_sequence(state: &mut ParserState) -> Result<char> {
+pub fn escape_sequence(state: &mut ParserState) -> Result<char> {
     match advance(state) {
         Some('n') => Ok('\n'),
         Some('t') => Ok('\t'),
         Some('r') => Ok('\r'),
-        Some('u') => todo!(),
+        Some('u') => todo!("add escape for unicode"),
         Some('"') => Ok('"'),
         Some('\\') => Ok('\\'),
         None => Err(UNEXPECTED_END_OF_STRING.into()),
@@ -142,7 +192,7 @@ fn escape_sequence(state: &mut ParserState) -> Result<char> {
 }
 
 /// parse string from cursor postion until ending `"`
-fn parse_string(state: &mut ParserState) -> Result<String> {
+pub fn parse_string(state: &mut ParserState) -> Result<String> {
     assert_char(state, '"', false)?;
     let mut working_stirng = String::new();
     loop {
@@ -160,7 +210,8 @@ fn parse_string(state: &mut ParserState) -> Result<String> {
     Ok(working_stirng)
 }
 
-fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
+/// parse [JsonValue::Obj](crate::values::JsonValue::Obj) from [ParserState]
+pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
     assert_char(state, '{', false)?;
     consume_whitespace(state);
     let mut json_map: HashMap<String, JsonValue> = HashMap::new();
@@ -186,7 +237,8 @@ fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
     Ok(JsonValue::Obj(json_map))
 }
 
-fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
+/// parse [JsonValue::Array](crate::values::JsonValue::Array) from [ParserState]
+pub fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
     assert_char(state, '[', false)?;
     consume_whitespace(state);
     let mut json_list: Vec<JsonValue> = Vec::new();
@@ -209,7 +261,7 @@ fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
 }
 
 /// the primary parsing function of the [ParserState] that can
-fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
+pub fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
     match peek(state) {
         Some('t' | 'T') => {
             assert_string(state, "true", true)?;
