@@ -229,10 +229,9 @@ mod benchmarks {
         }
     }
 
-    mod competition {
+    mod json_crate {
         extern crate test;
 
-        use json;
         use std::fs;
         use test::Bencher;
         #[bench]
