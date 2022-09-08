@@ -12,13 +12,12 @@ impl Display for FuzJsonParseError {
     }
 }
 
-
 /// result type for parser where error type is [FuzJsonParseError]
 pub type Result<T> = std::result::Result<T, FuzJsonParseError>;
 
 impl std::error::Error for FuzJsonParseError {}
 
-impl<S:Into<String>> From<S> for FuzJsonParseError {
+impl<S: Into<String>> From<S> for FuzJsonParseError {
     fn from(from_str_ref: S) -> Self {
         FuzJsonParseError(from_str_ref.into())
     }

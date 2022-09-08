@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             debug,
             path,
             pretty,
-            encode
+            encode,
         } => (path, pretty, debug, encode),
         ParseResults::Err => return Err("no valid test file given".into()),
         ParseResults::DontRun => return Ok(()),
@@ -41,7 +41,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{}\n", parsed_data);
     }
 
-
     Ok(())
 }
 
@@ -50,7 +49,7 @@ enum ParseResults {
         path: String,
         pretty: bool,
         debug: bool,
-        encode: bool
+        encode: bool,
     },
     DontRun,
     Err,
@@ -86,7 +85,7 @@ fn parse() -> Result<ParseResults, ArgsError> {
             path,
             debug: !args.value_of("no-debug")? && !args.value_of("only-encode-fmt")?,
             pretty: !args.value_of("no-pretty")? && !args.value_of("only-encode-fmt")?,
-            encode: args.value_of("encode-fmt")? || args.value_of("only-encode-fmt")?
+            encode: args.value_of("encode-fmt")? || args.value_of("only-encode-fmt")?,
         }),
         Err(_) => Ok(ParseResults::Err),
     }
