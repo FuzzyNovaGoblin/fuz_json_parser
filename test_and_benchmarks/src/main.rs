@@ -1,7 +1,11 @@
+#![feature(test)]
+
 use std::{env, fs, path::Path};
 
 use args::{Args, ArgsError};
 use getopts::Occur;
+
+mod tests;
 
 const PROGRAM_NAME: &str = "fuz_json_parser test file runner";
 const PROGRAM_DESC: &str = "choose a test file and run it through the fuz_json_parser";
