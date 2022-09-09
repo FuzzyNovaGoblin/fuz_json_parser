@@ -1,0 +1,15 @@
+[package]
+name = "fuz_json_parser"
+version = "0.1.1"
+authors = ["FuzzyNovaGoblin <fuzzy.nova.goblin@outlook.com>"]
+edition = "2021"
+license = "MIT"
+description = "a json parser"
+repository = "https://github.com/FuzzyNovaGoblin/fuz_json_parser"
+readme = "README.md"
+keywords = ["json", "parser", "json_parser"]
+exclude = ["test_files/*", "examples/test_runner.rs"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
