@@ -1,4 +1,4 @@
-pub use crate::json_parse;
+pub use crate::json_parser::wrapped_parse as json_parse;
 use crate::values::JsonValue::{Array, Bool, Null, Num, Obj};
 use crate::values::{JsonNum::*, JsonValue};
 use std::collections::HashMap;

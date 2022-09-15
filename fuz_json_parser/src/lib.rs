@@ -1,3 +1,4 @@
+#![feature(iter_array_chunks)]
 pub mod error;
 pub mod json_parser;
 pub mod values;

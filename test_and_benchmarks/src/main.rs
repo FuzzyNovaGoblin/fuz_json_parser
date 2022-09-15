@@ -5,7 +5,7 @@ use std::{env, fs, path::Path};
 use args::{Args, ArgsError};
 use getopts::Occur;
 
-mod tests;
+mod benchmarks;
 
 const PROGRAM_NAME: &str = "fuz_json_parser test file runner";
 const PROGRAM_DESC: &str = "choose a test file and run it through the fuz_json_parser";
@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let file_string = fs::read_to_string(file_path)?;
-    let parsed_data = match fuz_json_parser::json_parser::parse(file_string) {
+    let parsed_data = match fuz_json_parser::json_parser::wrapped_parse(file_string) {
         Ok(v) => v,
         Err(e_str) => {
             eprintln!("failed to parse json with message: {}", e_str);
