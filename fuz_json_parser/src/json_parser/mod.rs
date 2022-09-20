@@ -14,7 +14,7 @@ pub fn parse<S: AsRef<str>>(json_str: S) -> error::Result<JsonValue> {
     }
 }
 pub fn wrapped_parse<S: AsRef<str>>(json_str: S) -> error::Result<JsonValue> {
-    let mut state = wrapped_state::ParserState::<1000>::new(json_str.as_ref().chars().array_chunks());
+    let mut state = wrapped_state::ParserState::new(json_str.as_ref().chars());
     state.consume_whitespace();
     match state.peek() {
         Some(_) => wrapped_parsers::main_parse(&mut state),

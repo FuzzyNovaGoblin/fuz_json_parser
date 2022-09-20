@@ -4,7 +4,6 @@ use crate::values::{JsonNum::*, JsonValue};
 use std::collections::HashMap;
 
 macro_rules! collection {
-    // map-like
     ($($k:expr => $v:expr),* $(,)?) => {{
         use std::{collections::HashMap, iter::FromIterator};
         HashMap::<_,_>::from_iter(([$(($k, $v),)*]).into_iter())

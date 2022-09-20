@@ -7,7 +7,7 @@ use std::collections::HashMap;
 const UNEXPECTED_END_OF_STRING: &str = "Invalid JSON\t unexpected end of string";
 
 /// parse [JsonValue::Num](crate::values::JsonValue::Num) from [ParserState]
-pub fn parse_number<const N: usize>(state: &mut ParserState<N>) -> Result<JsonValue> {
+pub fn parse_number(state: &mut ParserState) -> Result<JsonValue> {
     //!
     //! return will be a [JsonValue::Num](crate::values::JsonValue::Num) containing either
     //! [JsonNum::Int](crate::values::JsonNum::Int) or [JsonNum::Float](crate::values::JsonNum::Float)
@@ -19,18 +19,22 @@ pub fn parse_number<const N: usize>(state: &mut ParserState<N>) -> Result<JsonVa
 
         match number_string.parse() {
             Ok(float) => Ok(JsonValue::Num(JsonNum::Float(float))),
-            Err(e) => Err(format!("failed to parse number as f64 {}", e).into()),
+            Err(e) => {
+                Err(format!("failed to parse number as f64 ({}) {}", number_string, e).into())
+            }
         }
     } else {
         match number_string.parse() {
             Ok(int) => Ok(JsonValue::Num(JsonNum::Int(int))),
-            Err(e) => Err(format!("failed to parse number as i128 {}", e).into()),
+            Err(e) => {
+                Err(format!("failed to parse number as i128 ({}) {}", number_string, e).into())
+            }
         }
     }
 }
 
 /// consumes an escape sequence and returns the intended character
-pub fn parse_escape_sequence<const N: usize>(state: &mut ParserState<N>) -> Result<char> {
+pub fn parse_escape_sequence(state: &mut ParserState) -> Result<char> {
     match state.advance() {
         Some('n') => Ok('\n'),
         Some('t') => Ok('\t'),
@@ -41,15 +45,16 @@ pub fn parse_escape_sequence<const N: usize>(state: &mut ParserState<N>) -> Resu
         None => Err(UNEXPECTED_END_OF_STRING.into()),
         Some(c) => Err(format!(
             "invalid character escape at {}\tattempted escape character`{}`",
-            state.total_pos(), c
+            state.total_pos(),
+            c
         )
         .into()),
     }
 }
 
 /// parse string from cursor postion until ending `"`
-pub fn parse_string<const N: usize>(state: &mut ParserState<N>) -> Result<String> {
-    state.assert_char( '"', false)?;
+pub fn parse_string(state: &mut ParserState) -> Result<String> {
+    state.assert_char('"', false)?;
     let mut working_stirng = String::new();
     loop {
         let c = match state.advance() {
@@ -67,8 +72,8 @@ pub fn parse_string<const N: usize>(state: &mut ParserState<N>) -> Result<String
 }
 
 /// parse [JsonValue::Obj](crate::values::JsonValue::Obj) from [ParserState]
-pub fn parse_object<const N: usize>(state: &mut ParserState<N>) -> Result<JsonValue> {
-    state.assert_char( '{', false)?;
+pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
+    state.assert_char('{', false)?;
     state.consume_whitespace();
     let mut json_map: HashMap<String, JsonValue> = HashMap::new();
     if let Some('}') = state.peek() {
@@ -77,7 +82,7 @@ pub fn parse_object<const N: usize>(state: &mut ParserState<N>) -> Result<JsonVa
     loop {
         let key = parse_string(state)?;
         state.consume_whitespace();
-        state.assert_char( ':', false)?;
+        state.assert_char(':', false)?;
         state.consume_whitespace();
 
         json_map.insert(key, main_parse(state)?);
@@ -94,8 +99,8 @@ pub fn parse_object<const N: usize>(state: &mut ParserState<N>) -> Result<JsonVa
 }
 
 /// parse [JsonValue::Array](crate::values::JsonValue::Array) from [ParserState]
-pub fn parse_array<const N: usize>(state: &mut ParserState<N>) -> Result<JsonValue> {
-    state.assert_char( '[', false)?;
+pub fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
+    state.assert_char('[', false)?;
     state.consume_whitespace();
     let mut json_list: Vec<JsonValue> = Vec::new();
     if let Some(']') = state.peek() {
@@ -117,19 +122,19 @@ pub fn parse_array<const N: usize>(state: &mut ParserState<N>) -> Result<JsonVal
 }
 
 /// the primary parsing function of the [ParserState] that can
-pub fn main_parse<const N: usize>(state: &mut ParserState<N>) -> Result<JsonValue> {
+pub fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
     state.consume_whitespace();
     match state.peek() {
         Some('t' | 'T') => {
-            state.assert_string( "true", true)?;
+            state.assert_string("true", true)?;
             Ok(JsonValue::Bool(true))
         }
         Some('f' | 'F') => {
-            state.assert_string( "false", true)?;
+            state.assert_string("false", true)?;
             Ok(JsonValue::Bool(false))
         }
         Some('n') => {
-            state.assert_string( "null", true)?;
+            state.assert_string("null", true)?;
             Ok(JsonValue::Null)
         }
         Some('.' | '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9') => {

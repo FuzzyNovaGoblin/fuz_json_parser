@@ -1,62 +1,44 @@
 use crate::error::Result;
-use std::{iter::ArrayChunks, str::Chars};
+use std::str::Chars;
 
 /// state of parseing function,
 /// holds cursor and string to be parsed
-pub struct ParserState<'a, const N: usize> {
-    chars: Vec<char>,
-    last_chars: Vec<char>,
+#[derive(Debug)]
+pub struct ParserState<'a> {
+    // chars: Vec<char>,
     pos: usize,
-    offset: usize,
-    chunks_iter: Option<ArrayChunks<Chars<'a>, N>>,
+    current_char: Option<char>,
+    char_itter: Chars<'a>,
 }
 
-impl<'a, const N: usize> ParserState<'a, N> {
-    pub fn new(chunks_iter: ArrayChunks<Chars<'a>, N>) -> ParserState<'a, N> {
+impl<'a> ParserState<'a> {
+    pub fn new(char_itter: Chars<'a>) -> ParserState<'a> {
         let mut ret = ParserState {
             pos: 0,
-            chunks_iter: Some(chunks_iter),
-            chars: Vec::new(),
-            last_chars: Vec::new(),
-            offset: 0,
+            char_itter,
+            current_char: None,
         };
-        ret.next_array_chunck();
+        ret.current_char = ret.char_itter.next();
+
         ret
     }
 
     pub fn total_pos(&self) -> usize {
-        self.offset + self.pos
+        self.pos
     }
 
     /// look at the current charater
     pub fn peek(&self) -> Option<char> {
-        self.chars.get(self.pos).copied()
+        self.current_char
     }
 
     /// return the current character and cursor to the next position
     pub fn advance(&mut self) -> Option<char> {
-
-        let ret_char = self.chars.get(self.pos).copied();
-
+        let current_char = self.current_char;
+        self.current_char = self.char_itter.next();
         self.pos += 1;
-        self.next_array_chunck();
 
-        ret_char
-    }
-
-    fn next_array_chunck(&mut self) {
-        if self.pos >= self.chars.len() {
-            if let Some(mut chunks_iter) = self.chunks_iter.take() {
-                self.offset += self.pos;
-                self.pos = 0;
-                if let Some(next_chunk) = chunks_iter.next() {
-                    self.last_chars = std::mem::replace(&mut self.chars, next_chunk.into());
-                    self.chunks_iter.replace(chunks_iter);
-                } else if let Some(remaining) = chunks_iter.into_remainder() {
-                    self.last_chars = std::mem::replace(&mut self.chars, remaining.collect());
-                }
-            }
-        }
+        current_char
     }
 
     /// assert that the current character is the expected character `c`
@@ -135,20 +117,12 @@ impl<'a, const N: usize> ParserState<'a, N> {
     ///
     /// the returned value is a [String] containing all the digits
     pub fn consume_number(&mut self) -> String {
-        let start = self.pos;
-        let start_offset = self.offset;
+        let mut number_string = String::new();
         while self.peek().map_or(false, |c| is_number_part(c)) {
-            self.advance();
+            number_string.push(self.advance().unwrap());
         }
-
-        if start_offset != self.offset {
-            self.last_chars[start..]
-                .iter()
-                .chain(self.chars[..self.pos].iter())
-                .collect()
-        } else {
-            self.chars[start..self.pos].iter().collect()
-        }
+        dbg!(&number_string);
+        number_string
     }
 
     /// move cursor t next character that is not whitespace
