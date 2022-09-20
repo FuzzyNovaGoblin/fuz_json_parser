@@ -23,6 +23,12 @@ name = "fuz_json_parser"
 version = "0.1.2"
 
 [[package]]
+name = "fuz_json_parser"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ba4f8cdfec7c3740c1688d0e2ded014aa48609b78e7e70bc62ee8e87437535c7"
+
+[[package]]
 name = "getopts"
 version = "0.2.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -51,7 +57,8 @@ name = "test_and_benchmarks"
 version = "0.1.0"
 dependencies = [
  "args",
- "fuz_json_parser",
+ "fuz_json_parser 0.1.2",
+ "fuz_json_parser 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "getopts",
  "json",
 ]

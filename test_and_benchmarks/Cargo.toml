@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+working_fuz_json_parser = { package = "fuz_json_parser", path = "../fuz_json_parser" }
+currnet_fuz_json_parser = { package = "fuz_json_parser", version = "*" }
 args = "2.2.0"
 getopts = "0.2.21"
 json = "0.12.4"
-fuz_json_parser = { path = "../fuz_json_parser" }
