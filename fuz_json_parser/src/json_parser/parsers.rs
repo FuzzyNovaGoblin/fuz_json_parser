@@ -11,7 +11,6 @@ const UNEXPECTED_END_OF_STRING: &str = "Invalid JSON\t unexpected end of string"
 /// return will be a [JsonValue::Num](crate::values::JsonValue::Num) containing either
 /// [JsonNum::Int](crate::values::JsonNum::Int) or [JsonNum::Float](crate::values::JsonNum::Float)
 pub fn parse_number(state: &mut ParserState) -> Result<JsonValue> {
-
     let number_string = state.consume_number();
 
     if number_string.contains('.') {
@@ -39,13 +38,25 @@ pub fn parse_escape_sequence(state: &mut ParserState) -> Result<char> {
         Some('n') => Ok('\n'),
         Some('t') => Ok('\t'),
         Some('r') => Ok('\r'),
-        Some('u') => todo!("add escape for unicode"),
+        Some('u') => {
+            match u32::from_str_radix(
+                &(0..4)
+                    .map(|_| state.advance().unwrap_or('0'))
+                    .collect::<String>(),
+                16,
+            )
+            .map(|num| char::from_u32(num))
+            {
+                Ok(Some(c)) => Ok(c),
+                _ => Err("failed to parse unicode escape".into()),
+            }
+        }
         Some('"') => Ok('"'),
         Some('\\') => Ok('\\'),
         None => Err(UNEXPECTED_END_OF_STRING.into()),
         Some(c) => Err(format!(
             "invalid character escape at {}\tattempted escape character`{}`",
-            state.total_pos(),
+            state.get_pos(),
             c
         )
         .into()),
@@ -74,9 +85,11 @@ pub fn parse_string(state: &mut ParserState) -> Result<String> {
 /// parse [JsonValue::Obj](crate::values::JsonValue::Obj) from [ParserState]
 pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
     state.assert_char('{', false)?;
+
     state.consume_whitespace();
+
     let mut json_map: HashMap<String, JsonValue> = HashMap::new();
-    if let Some('}') = state.peek() {
+    if  state.check_char('}') {
         return Ok(JsonValue::Obj(json_map));
     }
     loop {
@@ -92,7 +105,7 @@ pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
                 Some(',') => state.consume_whitespace(),
                 Some('}') => break,
                 None => return Err(UNEXPECTED_END_OF_STRING.into()),
-                Some(c) => return Err(format!("Invalid json string error at position {}  expected either `,` or `}}` instead found {}", state.total_pos(), c).into())
+                Some(c) => return Err(format!("Invalid json string error at position {}  expected either `,` or `}}` instead found `{}`", state.get_pos(), c).into())
             }
     }
     Ok(JsonValue::Obj(json_map))
@@ -103,8 +116,9 @@ pub fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
     state.assert_char('[', false)?;
     state.consume_whitespace();
     let mut json_list: Vec<JsonValue> = Vec::new();
-    if let Some(']') = state.peek() {
+    if state.check_char(']'){
         return Ok(JsonValue::Array(json_list));
+
     }
 
     loop {
@@ -114,7 +128,7 @@ pub fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
                 Some(',') => state.consume_whitespace(),
                 Some(']') => break,
                 None => return Err(UNEXPECTED_END_OF_STRING.into()),
-                Some(c) => return Err(format!("Invalid json string error at position {}  expected either `,` or `]` instead found {}", state.total_pos(), c).into())
+                Some(c) => return Err(format!("Invalid json string error at position {}  expected either `,` or `]` instead found `{}`", state.get_pos(), c).into())
             }
     }
 
@@ -147,7 +161,7 @@ pub fn main_parse(state: &mut ParserState) -> Result<JsonValue> {
         None => Err(UNEXPECTED_END_OF_STRING.into()),
         Some(c) => Err(format!(
             "Invalid JSON\tunknown character at position: {} `{c}`",
-            state.total_pos()
+            state.get_pos()
         )
         .into()),
     }

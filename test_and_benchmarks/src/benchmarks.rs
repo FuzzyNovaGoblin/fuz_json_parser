@@ -6,7 +6,7 @@ mod fuz_json_parser {
         fn easy_bench(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/tst5").unwrap();
             b.iter(|| {
-                let _ = working_fuz_json_parser::json_parser::parse(&tmp);
+                let _ = working_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
 
@@ -14,14 +14,14 @@ mod fuz_json_parser {
         fn tst7(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/tst7").unwrap();
             b.iter(|| {
-                let _ = working_fuz_json_parser::json_parse(&tmp);
+                let _ = working_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
         #[bench]
         fn large(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/large-file.json").unwrap();
             b.iter(|| {
-                let _ = working_fuz_json_parser::json_parse(&tmp);
+                let _ = working_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
     }
@@ -33,7 +33,7 @@ mod fuz_json_parser {
         fn easy_bench(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/tst5").unwrap();
             b.iter(|| {
-                let _ = currnet_fuz_json_parser::json_parser::parse(&tmp);
+                let _ = currnet_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
 
@@ -41,14 +41,14 @@ mod fuz_json_parser {
         fn tst7(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/tst7").unwrap();
             b.iter(|| {
-                let _ = currnet_fuz_json_parser::json_parse(&tmp);
+                let _ = currnet_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
         #[bench]
         fn large(b: &mut test::Bencher) {
             let tmp = std::fs::read_to_string("test_files/large-file.json").unwrap();
             b.iter(|| {
-                let _ = currnet_fuz_json_parser::json_parse(&tmp);
+                let _ = currnet_fuz_json_parser::json_parse(&tmp).unwrap();
             });
         }
     }
