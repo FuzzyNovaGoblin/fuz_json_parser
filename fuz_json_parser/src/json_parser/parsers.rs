@@ -75,6 +75,7 @@ pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
     consume_whitespace(state);
     let mut json_map: HashMap<String, JsonValue> = HashMap::new();
     if let Some('}') = peek(state) {
+        state.next();
         return Ok(JsonValue::Obj(json_map));
     }
     loop {
@@ -90,7 +91,7 @@ pub fn parse_object(state: &mut ParserState) -> Result<JsonValue> {
                 Some(',') => consume_whitespace(state),
                 Some('}') => break,
                 None => return Err(UNEXPECTED_END_OF_STRING.into()),
-                Some(c) => return Err(format!("Invalid json string error at position {}  expected either `,` or `}}` instead found {}", state.peek().map_or("UNKOWN".into(), |(pos, _)|pos.to_string()), c).into())
+                Some(c) => return Err(format!("Invalid json string error at position {} expected either `,` or `}}` instead found {}", state.peek().map_or("UNKOWN".into(), |(pos, _)|pos.to_string()), c).into())
             }
     }
     Ok(JsonValue::Obj(json_map))
@@ -102,6 +103,7 @@ pub fn parse_array(state: &mut ParserState) -> Result<JsonValue> {
     consume_whitespace(state);
     let mut json_list: Vec<JsonValue> = Vec::new();
     if let Some(']') = peek(state) {
+        state.next();
         return Ok(JsonValue::Array(json_list));
     }
 
